@@ -5,38 +5,42 @@
 DHT dht(DHTPIN, DHTTYPE);
 
 // CONFIG
+boolean debug = false;
 unsigned long waitSeconds = 60;
-float tempThreshold = 25;
-unsigned long heatSeconds = 10;
+float tempThreshold = 21;
+unsigned long heatSeconds = 5;
+// END CONFIG
 
-int pinHeater = 10;
+int pinHeater = 11;
 bool isHeating = false;
 unsigned long lastStarted;
 unsigned long lastStopped;
 
 
 void setup() {
-  lastStopped = millis() - (waitSeconds * 1000);
-  
   pinMode(pinHeater, OUTPUT);
-  pinMode(11, OUTPUT);
-  pinMode(12, OUTPUT); // Relay
-  pinMode(13, OUTPUT); // Relay
+
+  digitalWrite(pinHeater, LOW);
+  delay(1000);
+  digitalWrite(pinHeater, HIGH);
+  delay(5000);
+  digitalWrite(pinHeater, LOW);
+  delay(1000);
+
+  lastStopped = millis() - (waitSeconds * 1000);
+  lastStarted = millis() - (waitSeconds * 1000) - (heatSeconds * 1000);
 
   dht.begin();
-  
-  digitalWrite(pinHeater, LOW);
-  digitalWrite(11, LOW);
-  digitalWrite(12, LOW);
-  digitalWrite(13, LOW);
-  
+
+  if (debug) {
+    Serial.begin(9600);  
+  }
 }
 
 void loop() {
   delay(1000);
   float celsius = dht.readTemperature();
   unsigned long stoppedSeconds = (millis() - lastStopped) / 1000;
-  unsigned long runningSeconds = (millis() - lastStarted) / 1000;
 
   if (
       !isHeating && 
@@ -45,10 +49,22 @@ void loop() {
     startHeater();
   }
 
+  unsigned long runningSeconds = (millis() - lastStarted) / 1000;
+
   if (isHeating && runningSeconds > heatSeconds) {
     stopHeater();
   }
 
+  if (debug) {
+    Serial.print(F("Celsius: "));
+    Serial.print(celsius);
+    Serial.print(F("°C. Stopped: "));
+    Serial.print(stoppedSeconds);
+    Serial.print(F("s. Running: "));
+    Serial.print(runningSeconds);
+    Serial.print(F("s"));
+    Serial.print(F("\n "));
+  }
 }
 
 
@@ -56,6 +72,9 @@ void startHeater() {
   digitalWrite(pinHeater, HIGH);
   isHeating = true;
   lastStarted = millis();
+  if (debug) {
+    Serial.print(F("START\n"));
+  }
   delay(1000);
 }
 
@@ -63,6 +82,8 @@ void stopHeater() {
   digitalWrite(pinHeater, LOW);
   isHeating = false;
   lastStopped = millis();
-  lastStarted = millis();
+  if (debug) {
+    Serial.print(F("STOP\n"));
+  }
   delay(1000);
 }
