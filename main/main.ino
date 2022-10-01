@@ -41,11 +41,18 @@ void loop() {
   delay(1000);
   float celsius = dht.readTemperature();
   unsigned long stoppedSeconds = (millis() - lastStopped) / 1000;
+  
+  long addSeconds = (7 - (celsius / 2));
+  if (addSeconds < 0) addSeconds = 0;
+  if (addSeconds > 5) addSeconds = 5;
+
+  
 
   if (
       !isHeating && 
       celsius < tempThreshold &&
       stoppedSeconds > waitSeconds) {
+    heatSeconds = 5 + addSeconds;    
     startHeater();
   }
 
@@ -58,6 +65,8 @@ void loop() {
   if (debug) {
     Serial.print(F("Celsius: "));
     Serial.print(celsius);
+    Serial.print(F("heatSeconds: "));
+    Serial.print(heatSeconds);
     Serial.print(F("°C. Stopped: "));
     Serial.print(stoppedSeconds);
     Serial.print(F("s. Running: "));
