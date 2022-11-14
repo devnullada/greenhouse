@@ -5,7 +5,7 @@
 DHT dht(DHTPIN, DHTTYPE);
 
 // CONFIG
-boolean debug = true;
+boolean debug = false;
 unsigned long waitSeconds = 30;
 float tempThreshold = 22;
 unsigned long heatSeconds = 15;
